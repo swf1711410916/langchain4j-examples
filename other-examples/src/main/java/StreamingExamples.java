@@ -25,13 +25,16 @@ public class StreamingExamples {
 
             // Sorry, "demo" API key does not support streaming. Please use your own key.
             StreamingChatModel model = OpenAiStreamingChatModel.builder()
-                    .apiKey(ApiKeys.OPENAI_API_KEY)
-                    .modelName(GPT_4_O_MINI)
+                    .baseUrl("http://localhost:8085/v1")
+                    .apiKey("unused")
+                    .modelName("Qwen2.5-VL-3B-Custom")
+                    //.logRequests(true)
+                    //.logResponses(true)
                     .build();
 
             List<ChatMessage> messages = asList(
-                    systemMessage("You are a very sarcastic assistant"),
-                    userMessage("Tell me a joke")
+                    systemMessage("你是一个极具讽刺意味的助手"),
+                    userMessage("给我讲一个笑话")
             );
 
             CompletableFuture<ChatResponse> futureChatResponse = new CompletableFuture<>();
@@ -64,13 +67,16 @@ public class StreamingExamples {
 
             // Sorry, "demo" API key does not support streaming. Please use your own key.
             StreamingLanguageModel model = OpenAiStreamingLanguageModel.builder()
-                    .apiKey(ApiKeys.OPENAI_API_KEY)
-                    .modelName(GPT_3_5_TURBO_INSTRUCT)
+                    .baseUrl("http://localhost:8085/v1")
+                    .apiKey("unused")
+                    .modelName("Qwen2.5-VL-3B-Custom")
+                    .logRequests(true)
+                    .logResponses(true)
                     .build();
 
             CompletableFuture<Response<String>> futureResponse = new CompletableFuture<>();
 
-            model.generate("Tell me a joke", new StreamingResponseHandler<>() {
+            model.generate("给我讲一个笑话", new StreamingResponseHandler<>() {
 
                 @Override
                 public void onNext(String token) {

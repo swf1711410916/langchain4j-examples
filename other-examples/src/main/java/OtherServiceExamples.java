@@ -18,22 +18,24 @@ import static java.util.Arrays.asList;
 public class OtherServiceExamples {
 
     static ChatModel chatModel = OpenAiChatModel.builder()
-            .apiKey(ApiKeys.OPENAI_API_KEY)
-            .modelName(GPT_4_O_MINI)
+            .baseUrl("http://localhost:8085/v1")
+            .apiKey("unused")
+            .modelName("Qwen2.5-VL-3B-Custom")
             .build();
 
     static class Sentiment_Extracting_AI_Service_Example {
 
         enum Sentiment {
+            //积极，中性，消极
             POSITIVE, NEUTRAL, NEGATIVE;
         }
 
         interface SentimentAnalyzer {
 
-            @UserMessage("Analyze sentiment of {{it}}")
+            @UserMessage("分析情感从 {{it}}")
             Sentiment analyzeSentimentOf(String text);
 
-            @UserMessage("Does {{it}} have a positive sentiment?")
+            @UserMessage("对于 {{it}} 是否是一个消极的情感?")
             boolean isPositive(String text);
         }
 
@@ -41,10 +43,10 @@ public class OtherServiceExamples {
 
             SentimentAnalyzer sentimentAnalyzer = AiServices.create(SentimentAnalyzer.class, chatModel);
 
-            Sentiment sentiment = sentimentAnalyzer.analyzeSentimentOf("It is good!");
+            Sentiment sentiment = sentimentAnalyzer.analyzeSentimentOf("愤怒!");
             System.out.println(sentiment); // POSITIVE
 
-            boolean positive = sentimentAnalyzer.isPositive("It is bad!");
+            boolean positive = sentimentAnalyzer.isPositive("糟糕!");
             System.out.println(positive); // false
         }
     }
@@ -54,22 +56,22 @@ public class OtherServiceExamples {
 
         interface NumberExtractor {
 
-            @UserMessage("Extract number from {{it}}")
+            @UserMessage("提取数字从 {{it}}")
             int extractInt(String text);
 
-            @UserMessage("Extract number from {{it}}")
+            @UserMessage("提取数字从 {{it}}")
             long extractLong(String text);
 
-            @UserMessage("Extract number from {{it}}")
+            @UserMessage("提取数字从 {{it}}")
             BigInteger extractBigInteger(String text);
 
-            @UserMessage("Extract number from {{it}}")
+            @UserMessage("提取数字从 {{it}}")
             float extractFloat(String text);
 
-            @UserMessage("Extract number from {{it}}")
+            @UserMessage("提取数字从 from {{it}}")
             double extractDouble(String text);
 
-            @UserMessage("Extract number from {{it}}")
+            @UserMessage("提取数字从 {{it}}")
             BigDecimal extractBigDecimal(String text);
         }
 
@@ -77,8 +79,7 @@ public class OtherServiceExamples {
 
             NumberExtractor extractor = AiServices.create(NumberExtractor.class, chatModel);
 
-            String text = "After countless millennia of computation, the supercomputer Deep Thought finally announced " +
-                    "that the answer to the ultimate question of life, the universe, and everything was forty two.";
+            String text = "经过无数个千年的运算，超级计算机“深思”最终宣布，关于生命、宇宙以及一切的终极问题的答案是四十二。";
 
             int intNumber = extractor.extractInt(text);
             System.out.println(intNumber); // 42
@@ -105,13 +106,13 @@ public class OtherServiceExamples {
 
         interface DateTimeExtractor {
 
-            @UserMessage("Extract date from {{it}}")
+            @UserMessage("提取日期从 {{it}}")
             LocalDate extractDateFrom(String text);
 
-            @UserMessage("Extract time from {{it}}")
+            @UserMessage("提取时间从 {{it}}")
             LocalTime extractTimeFrom(String text);
 
-            @UserMessage("Extract date and time from {{it}}")
+            @UserMessage("提取日期和时间从 {{it}}")
             LocalDateTime extractDateTimeFrom(String text);
         }
 
@@ -119,8 +120,7 @@ public class OtherServiceExamples {
 
             DateTimeExtractor extractor = AiServices.create(DateTimeExtractor.class, chatModel);
 
-            String text = "The tranquility pervaded the evening of 1968, just fifteen minutes shy of midnight," +
-                    " following the celebrations of Independence Day.";
+            String text = "1968年那个傍晚，在独立日庆祝活动结束后，宁静笼罩着整个夜晚，此时距离午夜仅差十五分钟。";
 
             LocalDate date = extractor.extractDateFrom(text);
             System.out.println(date); // 1968-07-04
@@ -138,7 +138,7 @@ public class OtherServiceExamples {
 
         static class Person {
 
-            @Description("first name of a person")
+            @Description("这是一个人的信息")
             // you can add an optional description to help an LLM have a better understanding
             private String firstName;
             private String lastName;
@@ -156,15 +156,22 @@ public class OtherServiceExamples {
 
         interface PersonExtractor {
 
-            @UserMessage("Extract a person from the following text: {{it}}")
+            @UserMessage("""
+            从以下文本中提取人物和出生日期：{{it}}
+    
+            【硬性规则】
+            1. “独立日”代表 7月4日，“圣诞节”代表 12月25日。
+            2. 必须推断出完整的 birthDate（包含年、月、日），绝对不能为 null。
+            """)
             Person extractPersonFrom(String text);
         }
 
         public static void main(String[] args) {
 
             ChatModel chatModel = OpenAiChatModel.builder()
-                    .apiKey(ApiKeys.OPENAI_API_KEY)
-                    .modelName(GPT_4_O_MINI)
+                    .baseUrl("http://localhost:8085/v1")
+                    .apiKey("unused")
+                    .modelName("Qwen2.5-VL-3B-Custom")
                     // When extracting POJOs with the LLM that supports the "json mode" feature
                     // (e.g., OpenAI, Azure OpenAI, Vertex AI Gemini, Ollama, etc.),
                     // it is advisable to enable it (json mode) to get more reliable results.
@@ -177,9 +184,7 @@ public class OtherServiceExamples {
 
             PersonExtractor extractor = AiServices.create(PersonExtractor.class, chatModel);
 
-            String text = "In 1968, amidst the fading echoes of Independence Day, "
-                    + "a child named John arrived under the calm evening sky. "
-                    + "This newborn, bearing the surname Doe, marked the start of a new journey.";
+            String text = "1968年，在《独立日》余音渐消之际，一个名叫约翰的孩子在宁静的夜空下呱呱坠地。这个新生儿，姓多伊，标志着一个新旅程的开始。";
 
 
             Person person = extractor.extractPersonFrom(text);
@@ -193,29 +198,29 @@ public class OtherServiceExamples {
 
         static class Recipe {
 
-            @Description("short title, 3 words maximum")
+            @Description("简短标题，最多3个字")
             private String title;
 
-            @Description("short description, 2 sentences maximum")
+            @Description("简短描述，最多2句话")
             private String description;
 
-            @Description("each step should be described in 4 words, steps should rhyme")
+            @Description("每一步都应用四个字来描述，步骤之间应押韵")
             private List<String> steps;
 
             private Integer preparationTimeMinutes;
 
             @Override
             public String toString() {
-                return "Recipe {" +
-                        " title = \"" + title + "\"" +
-                        ", description = \"" + description + "\"" +
-                        ", steps = " + steps +
-                        ", preparationTimeMinutes = " + preparationTimeMinutes +
+                return "食谱 {" +
+                        " 标题 = \"" + title + "\"" +
+                        ", ，描述 = \"" + description + "\"" +
+                        ", 步骤 = " + steps +
+                        ", 准备时间（分钟） = " + preparationTimeMinutes +
                         " }";
             }
         }
 
-        @StructuredPrompt("Create a recipe of a {{dish}} that can be prepared using only {{ingredients}}")
+        @StructuredPrompt("制作一份仅使用{{ingredients}}就能准备的{{dish}}食谱")
         static class CreateRecipePrompt {
 
             private String dish;
@@ -232,8 +237,9 @@ public class OtherServiceExamples {
         public static void main(String[] args) {
 
             ChatModel chatModel = OpenAiChatModel.builder()
-                    .apiKey(ApiKeys.OPENAI_API_KEY)
-                    .modelName(GPT_4_O_MINI)
+                    .baseUrl("http://localhost:8085/v1")
+                    .apiKey("unused")
+                    .modelName("Qwen2.5-VL-3B-Custom")
                     // When extracting POJOs with the LLM that supports the "json mode" feature
                     // (e.g., OpenAI, Azure OpenAI, Vertex AI Gemini, Ollama, etc.),
                     // it is advisable to enable it (json mode) to get more reliable results.
@@ -246,7 +252,7 @@ public class OtherServiceExamples {
 
             Chef chef = AiServices.create(Chef.class, chatModel);
 
-            Recipe recipe = chef.createRecipeFrom("cucumber", "tomato", "feta", "onion", "olives");
+            Recipe recipe = chef.createRecipeFrom("黄瓜", "番茄", "羊乳酪", "洋葱", "橄榄油");
 
             System.out.println(recipe);
             // Recipe {
@@ -263,8 +269,8 @@ public class OtherServiceExamples {
 
 
             CreateRecipePrompt prompt = new CreateRecipePrompt();
-            prompt.dish = "salad";
-            prompt.ingredients = asList("cucumber", "tomato", "feta", "onion", "olives");
+            prompt.dish = "沙拉";
+            prompt.ingredients = asList("黄瓜", "番茄", "羊乳酪", "洋葱", "橄榄油");
 
             Recipe anotherRecipe = chef.createRecipe(prompt);
             System.out.println(anotherRecipe);

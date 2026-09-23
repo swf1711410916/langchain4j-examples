@@ -10,11 +10,11 @@ public class PromptTemplateExamples {
 
         public static void main(String[] args) {
 
-            PromptTemplate promptTemplate = PromptTemplate.from("Say 'hi' in {{it}}.");
+            PromptTemplate promptTemplate = PromptTemplate.from("说 '你好' 用 {{it}}.");
 
-            Prompt prompt = promptTemplate.apply("German");
+            Prompt prompt = promptTemplate.apply("中文");
 
-            System.out.println(prompt.text()); // Say 'hi' in German.
+            System.out.println(prompt.text());
         }
     }
 
@@ -22,11 +22,11 @@ public class PromptTemplateExamples {
 
         public static void main(String[] args) {
 
-            PromptTemplate promptTemplate = PromptTemplate.from("Say '{{text}}' in {{language}}.");
+            PromptTemplate promptTemplate = PromptTemplate.from("说 '{{text}}' 用 {{language}}.");
 
             Map<String, Object> variables = new HashMap<>();
-            variables.put("text", "hi");
-            variables.put("language", "German");
+            variables.put("text", "你好");
+            variables.put("language", "中文");
 
             Prompt prompt = promptTemplate.apply(variables);
 

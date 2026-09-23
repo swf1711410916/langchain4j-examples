@@ -14,13 +14,14 @@ public class SimpleServiceExample {
     public static void main(String[] args) {
 
         ChatModel chatModel = OpenAiChatModel.builder()
-                .apiKey(ApiKeys.OPENAI_API_KEY)
-                .modelName(GPT_4_O_MINI)
+                .baseUrl("http://localhost:8085/v1")
+                .apiKey("unused")
+                .modelName("Qwen2.5-VL-3B-Custom")
                 .build();
 
         Assistant assistant = AiServices.create(Assistant.class, chatModel);
 
-        String answer = assistant.chat("Hello");
+        String answer = assistant.chat("你好");
 
         System.out.println(answer); // Hello! How can I assist you today?
     }

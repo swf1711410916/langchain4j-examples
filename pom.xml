@@ -40,7 +40,7 @@
         <module>oracle-example</module>
         <module>other-examples</module>
         <module>ovh-ai-examples</module>
-        <module>payara-micro-example</module>
+        <!--<module>payara-micro-example</module>-->
         <module>pgvector-example</module>
         <module>pinecone-example</module>
         <module>qdrant-example</module>
