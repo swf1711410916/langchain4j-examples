@@ -1,3 +1,6 @@
+import dev.langchain4j.memory.ChatMemory;
+import dev.langchain4j.memory.chat.ChatMemoryProvider;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.input.structured.StructuredPrompt;
 import dev.langchain4j.model.openai.OpenAiChatModel;
@@ -21,6 +24,8 @@ public class OtherServiceExamples {
             .baseUrl("http://localhost:8085/v1")
             .apiKey("unused")
             .modelName("Qwen2.5-VL-3B-Custom")
+            .logRequests(true)
+            .logResponses(true)
             .build();
 
     static class Sentiment_Extracting_AI_Service_Example {
@@ -254,7 +259,7 @@ public class OtherServiceExamples {
 
             Recipe recipe = chef.createRecipeFrom("黄瓜", "番茄", "羊乳酪", "洋葱", "橄榄油");
 
-            System.out.println(recipe);
+            System.out.println("recipe="+recipe);
             // Recipe {
             //     title = "Greek Salad",
             //     description = "A refreshing mix of veggies and feta cheese in a zesty dressing.",
@@ -273,7 +278,7 @@ public class OtherServiceExamples {
             prompt.ingredients = asList("黄瓜", "番茄", "羊乳酪", "洋葱", "橄榄油");
 
             Recipe anotherRecipe = chef.createRecipe(prompt);
-            System.out.println(anotherRecipe);
+            System.out.println("anotherRecipe="+anotherRecipe);
             // Recipe ...
         }
     }
@@ -283,7 +288,7 @@ public class OtherServiceExamples {
 
         interface Chef {
 
-            @SystemMessage("You are a professional chef. You are friendly, polite and concise.")
+            @SystemMessage("你是一位专业厨师。你待人友善，彬彬有礼，言辞简洁。")
             String answer(String question);
         }
 
@@ -291,7 +296,7 @@ public class OtherServiceExamples {
 
             Chef chef = AiServices.create(Chef.class, chatModel);
 
-            String answer = chef.answer("How long should I grill chicken?");
+            String answer = chef.answer("我应该烤鸡多长时间？");
             System.out.println(answer); // Grilling chicken usually takes around 10-15 minutes per side, depending on ...
         }
     }
@@ -313,13 +318,11 @@ public class OtherServiceExamples {
 
             TextUtils utils = AiServices.create(TextUtils.class, chatModel);
 
-            String translation = utils.translate("Hello, how are you?", "italian");
+            String translation = utils.translate("Hello, how are you?", "chinese");
             System.out.println(translation); // Ciao, come stai?
 
 
-            String text = "AI, or artificial intelligence, is a branch of computer science that aims to create " +
-                    "machines that mimic human intelligence. This can range from simple tasks such as recognizing " +
-                    "patterns or speech to more complex tasks like making decisions or predictions.";
+            String text = "人工智能（AI）是计算机科学的一个分支，旨在创造能够模拟人类智能的机器。其应用范围涵盖从识别模式或语音等简单任务，到做出决策或预测等更复杂的任务。";
 
             List<String> bulletPoints = utils.summarize(text, 3);
             System.out.println(bulletPoints);
@@ -345,7 +348,7 @@ public class OtherServiceExamples {
 
             TextUtils utils = AiServices.create(TextUtils.class, chatModel);
 
-            String translation = utils.translate("Hello, how are you?", "italian");
+            String translation = utils.translate("Hello, how are you?", "chinese");
             System.out.println(translation); // Ciao, come stai?
         }
     }
@@ -354,8 +357,8 @@ public class OtherServiceExamples {
     static class AI_Service_with_UserName_Example {
 
         interface Assistant {
-
-            String chat(@UserName String name, @UserMessage String message);
+            @UserMessage("My name is {{name}}. {{message}}")
+            String chat(@V("name") String name, @V("message") String message);
         }
 
         public static void main(String[] args) {
@@ -376,17 +379,27 @@ public class OtherServiceExamples {
 
         public static void main(String[] args) {
 
-            Function<Object, String> systemMessageProvider = (memoryId) -> {
-                if (memoryId.equals("1")) {
-                    return "You are a helpful assistant. The user prefers to be called 'Your Majesty'.";
-                } else {
-                    return "You are a helpful assistant.";
+            Function<Object, String> systemMessageProvider = new Function<Object, String>() {
+                @Override
+                public String apply(Object memoryId) {
+                    if (memoryId.equals("1")) {
+                        return "你是一位乐于助人的助手。用户更喜欢被称为“陛下”。";
+                    } else {
+                        return "你是一位乐于助人的助手。";
+                    }
                 }
             };
 
+            ChatMemoryProvider chatMemoryProvider = new ChatMemoryProvider() {
+                @Override
+                public ChatMemory get(Object id) {
+                    return MessageWindowChatMemory.builder().id(id).maxMessages(10).build();
+                }
+            };
             Assistant assistant = AiServices.builder(Assistant.class)
                     .chatModel(chatModel)
                     .systemMessageProvider(systemMessageProvider)
+                    .chatMemoryProvider(chatMemoryProvider)
                     .build();
 
             System.out.println(assistant.chat("1", "Hi")); // Hello, Your Majesty! How may I assist you today?
